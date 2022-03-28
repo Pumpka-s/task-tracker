@@ -5,5 +5,8 @@
   .field
     = form.input :description
 
+  .field
+    = form.input :user_ids, collection: User.all, input_html: { multiple: true }
+
   .actions
     = form.button :submit

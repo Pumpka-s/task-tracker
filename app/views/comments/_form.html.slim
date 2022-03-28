@@ -1,0 +1,10 @@
+= simple_form_for [task, comment]  do |form|
+  = render '/common/errors', model: comment
+
+  .field
+    = form.input :task_id, :as => :hidden, :input_html => { :value => task.id}
+  .field
+    = form.input :content
+  br
+  .actions
+    = form.submit 'Save', class: 'btn btn-primary'

@@ -1,6 +1,6 @@
 class ProjectsController < ApplicationController
   before_action :authenticate_current_user!, except: %i[index]
-  before_action :set_project, only: [:show, :edit, :update, :destroy]
+  before_action :set_project, only: %i[show edit update destroy]
   before_action -> { authorize @project }, only: %i[show edit update destroy]
 
   # GET /projects
@@ -27,9 +27,8 @@ class ProjectsController < ApplicationController
   def create
     authorize Project, :create?
 
-    @project = Project.new(project_params)
-
-    if @project.save
+    @project = create_project.project
+    if create_project.success?
       redirect_to @project, notice: 'Project was successfully created.'
     else
       render :new
@@ -38,7 +37,8 @@ class ProjectsController < ApplicationController
 
   # PATCH/PUT /projects/1
   def update
-    if @project.update(project_params)
+    authorize @project, :update?
+    if update_project.success?
       redirect_to @project, notice: 'Project was successfully updated.'
     else
       render :edit
@@ -52,12 +52,21 @@ class ProjectsController < ApplicationController
   end
 
   private
-    def set_project
-      @project = Project.find(params[:id])
-    end
 
-    def project_params
-      params.require(:project).permit(:name, :description)
-        .merge(user_id: current_user.id)
-    end
+  def create_project
+    @create_project ||=
+      CreateProject.call(project_params: project_params, current_user: current_user)
+  end
+
+  def update_project
+    UpdateProject.call(project_params: project_params, current_user: current_user, project: @project)
+  end
+
+  def set_project
+    @project = Project.find(params[:id])
+  end
+
+  def project_params
+    params.require(:project).permit(:name, :description, user_ids: [])
+  end
 end
